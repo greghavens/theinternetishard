@@ -1,5 +1,9 @@
 # The Internet Is Hard
 
-Home of Backwoods Models and the project showcase.
+The complete website is published directly from `main` at the repository root.
 
-Source is on `main`. GitHub Pages deploys the `gh-pages` branch from `/(root)`.
+GitHub Pages settings: **Deploy from a branch → main → /(root)**.
+
+Custom domain: `theinternetishard.com`.
+
+The editable site snapshot is also retained in `dist/`. After changing it, run `python scripts/publish-root.py` and commit the updated root files to `main`. No separate publishing branch is required.

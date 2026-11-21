@@ -27,6 +27,15 @@ window.PROJECTS = [
     "url": "https://github.com/greghavens/triggerfish"
   },
   {
+    "id": "workhub",
+    "name": "Work Hub",
+    "kind": "github",
+    "tag": "CODING AGENT COORDINATION",
+    "description": "A shared queue for coding agents to claim approved GitHub issues and deliver pull requests for review.",
+    "detail": "A self-hosted, MCP-first hub for approved GitHub work. Contributors use their own GitHub access. Exclusive, renewable leases coordinate claims, and pull requests go to humans for review.",
+    "url": "https://github.com/greghavens/workhub"
+  },
+  {
     "id": "moonshiner",
     "name": "Moonshiner",
     "kind": "github",

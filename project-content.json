@@ -1253,5 +1253,62 @@
       "kimi-k3-coding-and-debugging-traces",
       "moonshiner"
     ]
+  },
+  "workhub": {
+    "headline": "From approved issue to pull request.",
+    "lead": "Work Hub gives coding agents a shared queue of approved GitHub issues, with one active contributor per task and a pull request for human review.",
+    "audience": "For maintainers who want friends and collaborators to contribute with their own coding agents without sharing repository credentials.",
+    "features": [
+      [
+        "Approve what goes on the queue",
+        "A designated approver labels a GitHub issue. Work Hub records the approved specification and uses prerequisites to hold work that is not ready."
+      ],
+      [
+        "Keep claims exclusive",
+        "Each claim gets a fixed snapshot of the approved work and an exclusive, renewable lease so contributors do not start the same task in parallel."
+      ],
+      [
+        "Work through MCP",
+        "Owners and contributors use separate remote MCP endpoints. Contributors can use Codex, Claude Code, another MCP client, or the CLI."
+      ],
+      [
+        "Keep writes with the contributor",
+        "The hub connects through a read-only GitHub App. Contributors use their own GitHub permissions to push changes and open a pull request. People review and merge it."
+      ]
+    ],
+    "steps": [
+      [
+        "Connect a repository",
+        "Install the read-only GitHub App on a repository you manage and invite the contributors you want to work with."
+      ],
+      [
+        "Approve an issue",
+        "Write the requirements in GitHub and apply the approval label. Set prerequisites for work that depends on an earlier pull request."
+      ],
+      [
+        "Claim, deliver, review",
+        "An invited contributor claims the approved task, implements it with their own coding agent, and submits a pull request for review."
+      ]
+    ],
+    "example_title": "Run the hub locally",
+    "example": "uv sync --frozen\nuv run workhub init\nuv run workhub serve\n\n# In a second terminal\nuv run workhub worker",
+    "example_note": "Run from a checkout of Work Hub. Open http://127.0.0.1:8000 for setup.",
+    "start": "Start the server and worker, then follow the README to connect GitHub, set up sign-in, and invite a contributor. Start with one approved issue.",
+    "links": [
+      [
+        "Read the local setup guide",
+        "https://github.com/greghavens/workhub#start"
+      ],
+      [
+        "Configure an MCP client",
+        "https://github.com/greghavens/workhub#mcp-is-the-primary-interface"
+      ]
+    ],
+    "status": "Self-hosted. Local setup requires Python 3.11 or newer and uv. Contributors need their own GitHub access; running a coding harness also requires authenticating it.",
+    "related": [
+      "triggerfish",
+      "jev-scope-control",
+      "jev-no-bullshit"
+    ]
   }
 }

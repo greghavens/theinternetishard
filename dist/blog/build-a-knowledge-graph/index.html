@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Start with a question, model the relationships, and make each claim traceable to a source.">
+<meta name="theme-color" content="#f4f2e9">
+<title>How to build a knowledge graph | The Internet Is Hard</title>
+<link rel="canonical" href="https://theinternetishard.com/blog/build-a-knowledge-graph/">
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../blog.css">
+<link rel="icon" href="../../favicon.svg">
+</head>
+<body class="blog-page">
+<a class="skip" href="#content">Skip to content</a>
+<header>
+  <a class="brand" href="../../"><span class="brand-icon" aria-hidden="true">⌘</span> the internet is hard.</a>
+  <nav aria-label="Main navigation">
+    <a href="../../#projects">Projects</a>
+    <a href="../../blog/">Blog</a>
+    <a href="../../#about">About</a>
+    <a class="nav-gh" href="https://github.com/greghavens">GitHub ↗</a>
+  </nav>
+</header>
+<main id="content">
+
+<article class="blog-post">
+  <a class="blog-back" href="../">← Blog</a>
+  <div class="blog-post-head">
+    <p class="eyebrow">KNOWLEDGE GRAPHS / PART 01 OF 03</p>
+    <h1>How to build a knowledge graph</h1>
+    <p class="blog-deck">Start with a question, model the relationships, and make each claim traceable to a source.</p>
+    <p class="blog-byline">Greg Havens · <time datetime="2026-11-23">November 23, 2026</time></p>
+  </div>
+  <nav class="blog-sequence" aria-label="Series navigation">
+    <strong>From knowledge graphs to Graph RAG</strong>
+    <ol><li><a href="../build-a-knowledge-graph/" aria-current="page">1. How to build a knowledge graph</a></li>
+<li><a href="../jev-graph-builder/">2. Build and verify a graph with Jev Graph Builder</a></li>
+<li><a href="../graph-rag-vcf-agent/">3. Put Graph RAG to work in a VCF agent</a></li></ol>
+  </nav>
+  <div class="blog-copy">
+<p>Start with a question your documentation makes hard to answer. Suppose you maintain a service called Relay. An operator asks, “Can Relay 2.0 consume jobs from a 1.8 queue, and what has to happen before we switch traffic?” The answer might be split across an upgrade guide, a compatibility table, and an operations runbook. Searching for the product name mostly finds pages that mention the product. A graph gives you a way to represent which of those pages answer different pieces of the question.</p>
+
+<h2 id="scope">1. Write down the questions first</h2>
+<p>Pick a small corpus and a decision someone actually needs to make. For Relay, start with compatibility, upgrade prerequisites, and validation. Add questions with no answer in the corpus, too: “Does this work with our production queue?” is unanswerable without site evidence. Keep ten or twenty questions aside. A graph that answers its author’s favorite example but fails the next operator’s question still needs work.</p>
+
+<h2 id="schema">2. Give the graph a small vocabulary</h2>
+<p>A knowledge graph represents things as nodes and named relationships as edges. For the Relay example, <code>Release</code>, <code>QueueProtocol</code>, <code>Procedure</code>, <code>Precheck</code>, and <code>Passage</code> are enough. Use directional relationships with definitions: <code>REQUIRES</code> means a condition must hold before the procedure, while <code>SUPPORTS</code> means a source explicitly documents compatibility. Keep <code>MENTIONS</code> separate from either.</p>
+<pre tabindex="0"><code>relay:release:2.0  --SUPPORTS-->       relay:queue-protocol:1.8
+relay:cutover:2.0  --REQUIRES-->       relay:check:preview-read
+relay:cutover:2.0  --DOCUMENTED_IN-->  upgrade-2.0#before-cutover</code></pre>
+<p>The release and procedure are distinct entities. The first edge does not say every 1.8 server is compatible, only that the 2.0 worker supports the 1.8 <em>protocol</em>. That distinction is easy to lose if everything becomes a generic “related to” edge.</p>
+
+<h2 id="evidence">3. Make every claim traceable</h2>
+<p>Inventory the documents first: canonical location, source revision, product version, and scope. Split by headings and keep the heading chain. Preserve tables and code with their surrounding explanation when that is needed to interpret them. Give each passage an address within a specific revision so you can still find the evidence after a document changes.</p>
+<p>You can start with CSVs or JSON. A triple is enough to draw the graph, but for retrieval I would keep the evidence and applicability with it:</p>
+<pre tabindex="0"><code>{
+  "subject": "relay:release:2.0",
+  "relation": "SUPPORTS",
+  "object": "relay:queue-protocol:1.8",
+  "scope": {"component": "worker", "release": "2.0"},
+  "evidence": {"doc": "compatibility-2.0", "revision": "r1",
+               "heading": "Worker queue protocols"}
+}</code></pre>
+<p>For richer provenance, <a href="https://www.w3.org/TR/prov-o/">W3C PROV-O</a> is a useful reference. The important part here is being able to answer “Where did this claim come from, and does that source apply?”</p>
+
+<h2 id="extract">4. Extract candidates and resolve identities</h2>
+<p>Use deterministic parsing for fields the source already structures, such as release IDs or rows in a compatibility matrix. Use a model or a human review pass for prose. Require the passage that supports each proposed relationship. Reject facts whose evidence only says something nearby, such as a feature being planned rather than supported.</p>
+<p>Decide when two records really refer to the same thing. “Relay Worker” and “Relay consumer” can be aliases in the fixture; a 1.8 worker and a 2.0 worker are separate releases. Use normalized names and search to propose matches, then resolve ambiguity with type, context, and version. Do not merge by spelling alone. If two sources conflict, keep both claims with their conditions and provenance until you can establish which applies.</p>
+
+<h2 id="retrieve">5. Retrieve evidence, then test the graph</h2>
+<p>Index passages for keyword or vector search. Seed the graph with a few relevant hits, expand along useful relation types for one or two hops, and rank the evidence under a fixed context budget. For Relay, the compatibility passage may lead to the cutover procedure and then the preview-read check. Return the underlying passages so the answer can cite them. Skip expansion when the initial passage already answers the question.</p>
+<p>Graph RAG is a family of approaches. This series uses question-driven traversal to find related evidence. <a href="https://www.microsoft.com/en-us/research/publication/from-local-to-global-a-graph-rag-approach-to-query-focused-summarization/">Microsoft’s original GraphRAG paper</a> also describes a community-summary approach for questions about themes across a whole corpus. Choose the retrieval strategy for the question you need to answer.</p>
+<p>Before adding more documents, sample bad merges and high-degree hubs, look for missing or unsupported edges, and run the held-out questions with and without traversal. Check citation support, version accuracy, missing prerequisites, abstention, and the added latency. When a source changes, retire or replace the claims and links derived from its old revision. Keep enough provenance to explain what changed.</p>
+
+<aside id="fixture" class="blog-note"><strong>Try it on three files.</strong> The fictional Relay corpus contains a <a href="../examples/relay/compatibility.md">compatibility note</a>, an <a href="../examples/relay/upgrade.md">upgrade procedure</a>, and a <a href="../examples/relay/preflight.md">preflight runbook</a>. Save them as Markdown and try to answer the opening question by hand. Then give the same files to the builder in Part 2.</aside>
+  </div>
+  <nav class="blog-pagination" aria-label="Previous and next posts"><a href="../">← Blog index</a><a href="../jev-graph-builder/">Part 2: Build and verify a graph with Jev Graph Builder →</a></nav>
+</article>
+
+</main>
+<footer>
+  <a class="brand" href="../../">the internet is hard.</a>
+  <span>Made by Greg Havens. Built in the open.</span>
+  <a href="#content">Back to top ↑</a>
+</footer>
+</body>
+</html>

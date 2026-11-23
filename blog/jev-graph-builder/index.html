@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Walk through every stage, from approving the ontology to auditing the links the agent will follow.">
+<meta name="theme-color" content="#f4f2e9">
+<title>Build and verify a graph with Jev Graph Builder | The Internet Is Hard</title>
+<link rel="canonical" href="https://theinternetishard.com/blog/jev-graph-builder/">
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../blog.css">
+<link rel="icon" href="../../favicon.svg">
+</head>
+<body class="blog-page">
+<a class="skip" href="#content">Skip to content</a>
+<header>
+  <a class="brand" href="../../"><span class="brand-icon" aria-hidden="true">⌘</span> the internet is hard.</a>
+  <nav aria-label="Main navigation">
+    <a href="../../#projects">Projects</a>
+    <a href="../../blog/">Blog</a>
+    <a href="../../#about">About</a>
+    <a class="nav-gh" href="https://github.com/greghavens">GitHub ↗</a>
+  </nav>
+</header>
+<main id="content">
+
+<article class="blog-post">
+  <a class="blog-back" href="../">← Blog</a>
+  <div class="blog-post-head">
+    <p class="eyebrow">KNOWLEDGE GRAPHS / PART 02 OF 03</p>
+    <h1>Build and verify a graph with Jev Graph Builder</h1>
+    <p class="blog-deck">Walk through every stage, from approving the ontology to auditing the links the agent will follow.</p>
+    <p class="blog-byline">Greg Havens · <time datetime="2026-11-23">November 23, 2026</time></p>
+  </div>
+  <nav class="blog-sequence" aria-label="Series navigation">
+    <strong>From knowledge graphs to Graph RAG</strong>
+    <ol><li><a href="../build-a-knowledge-graph/">1. How to build a knowledge graph</a></li>
+<li><a href="../jev-graph-builder/" aria-current="page">2. Build and verify a graph with Jev Graph Builder</a></li>
+<li><a href="../graph-rag-vcf-agent/">3. Put Graph RAG to work in a VCF agent</a></li></ol>
+  </nav>
+  <div class="blog-copy">
+<p>In Part 1, we defined a few concepts and followed a claim back to its source. Now put that process on rails. Jev Graph Builder uses two different jobs: a coding agent drafts text and structured proposals, and Jev answers fixed decision questions about them. Ordinary code handles jobs where the output should be deterministic, such as computing IDs, looking up a source span, or finding candidate neighbors. The split matters because a fluent extraction can still be unsupported.</p>
+
+<h2 id="run">Build a small graph first</h2>
+<p>Use Python 3.11 or later, a logged-in <code>codex</code> CLI, Docker or Podman for the local pgvector database (or your own PostgreSQL 16 with pgvector), and a TypeSafe key already set in <code>TYPESAFE_API_KEY</code>. Keep the key out of shell history and configuration files. Run from a new working directory with the three <a href="../build-a-knowledge-graph/#fixture">Relay example files</a> saved in <code>relay-docs/</code>. Use non-sensitive inputs for the first run; selected content is processed by the configured model services.</p>
+<pre tabindex="0"><code>python -m venv .venv
+. .venv/bin/activate
+python -m pip install 'jev-graph-builder==0.1.1'
+jev-graph-builder --harness codex build ./relay-docs
+jev-graph-builder status
+jev-graph-builder search 'What must pass before Relay 2.0 receives traffic?' -k 5</code></pre>
+<p>The first build asks you to approve the proposed Registry. Read the proposal before accepting it. For these files, look for a vocabulary that keeps release, queue protocol, and validation procedure separate. If your graph is intended for more than this fixture, seed the first run with representative material so the Registry is not shaped by an unrepresentative corner of the corpus. The commands above follow the <a href="https://github.com/greghavens/jev-graph-builder/tree/v0.1.1">0.1.1 release</a>.</p>
+
+<h2 id="bootstrap">S0 · Draft and approve the Registry</h2>
+<p>The builder samples inputs across file types, sizes, and directories. The coding harness proposes the ontology, extraction notes, and initial policies. Jev checks proposed definitions against cited material and looks for overlapping relation types; ambiguous pairs can go back for clarification. The result is a proposed Registry version, not an active schema. A human reviews its scope, open decisions, and definitions before activation. This is where you catch a <code>requires</code> relation that accidentally includes optional recommendations.</p>
+
+<h2 id="ingest">S1 · Parse, normalize, and triage documents</h2>
+<p>Parsers turn files into structural units. Code normalizes them, records source and metadata, and assigns an ID from the source URI and normalized text. Exact copies can be linked rather than treated as independent evidence. Jev’s document triage decides what belongs in the corpus; material outside scope is parked. A new revision at the same path can replace prior derived material so the graph does not silently keep both versions as current.</p>
+
+<h2 id="segment">S2 · Segment along the document structure</h2>
+<p>The builder groups content by heading, splitting oversized sections at structural boundaries. Chunks retain the heading path, and code creates structural links such as <code>NEXT</code> and <code>IN_SECTION</code>. Jev checks for boilerplate, topic, and potential prompt injection. That screening helps at ingestion, but retrieved text still needs to be treated as data by an agent. Retaining the heading is valuable here: a paragraph under “Before cutover” has a different purpose from the same words under “Troubleshooting.”</p>
+
+<h2 id="enrich">S3 · Extract facts, ground them, and verify them</h2>
+<p>The coding agent proposes entities, claims, summaries, and retrieval metadata from each chunk. The pipeline locates entity mentions and claim evidence in the text; ambiguous span matches can go through a separate Jev decision. Extraction checks ask whether the cited passage supports each entity or claim. Citation checks also apply to generated titles and keywords. Rejected candidates are not promoted. For example, “a 2.0 worker can read protocol 1.8” does not substantiate “all 1.8 deployments can upgrade directly.”</p>
+
+<h2 id="embed">S4 · Embed and index the material</h2>
+<p>The builder embeds chunk text with heading context, entity mentions with descriptions, and claims as text. PostgreSQL with pgvector provides a vector index; there is also full-text indexing for literal signals such as error strings. Embedding model identity is tracked so a model change can trigger re-embedding. Search similarity is useful for finding candidates, but it does not decide whether their claims or links are valid.</p>
+
+<h2 id="entities">S5 · Resolve aliases without merging unrelated things</h2>
+<p>Same-type normalized names can be grouped by rule. For other possible matches, code collects candidates from names, nearby embeddings, and document co-occurrence. Jev judges whether the mentions denote the same thing. The merge logic can block a proposed cluster union when a known negative decision crosses it. Jev chooses canonical names from observed forms, and the merge decisions remain traceable. Check that a spelling alias consolidates while two versions of Relay remain distinguishable.</p>
+
+<h2 id="links">S6 · Propose typed links, then verify them again</h2>
+<p>Code proposes chunk pairs using multiple signals: embedding neighbors, shared entities, structural proximity, and keyword hits. Jev chooses a relation from the approved vocabulary or declines the edge. An accepted semantic edge gets a second check based on claims and entities. If it fails, the edge does not enter the retrieval graph. An excess of candidates that do not fit the vocabulary can prompt a schema proposal rather than force a misleading edge type. That second check is another judgment, not independent proof of truth.</p>
+
+<h2 id="audit">S7 · Audit the shape and verify the build</h2>
+<p>Code looks for isolated chunks, unusually connected hubs, contradictions, and suspicious relation patterns. Jev judges flagged items; the pipeline can demote an edge, requeue a pair, or leave a review item. The stage also samples decision consistency and builds communities with source-checked summaries. Finally, verification checks required decision records, edge verification, and remaining runnable work. This tells you whether the pipeline met its own checks, not whether the corpus covers every question.</p>
+
+<h2 id="inspect">Do a reader’s check before calling it done</h2>
+<p>Read <code>status</code> for failures, use <code>audit graph</code> to inspect graph shape, and rerun the same build after an interruption to resume. Then inspect three outcomes: whether the compatibility claim still has the right version, whether the cutover prerequisite points to the correct runbook, and whether the graph leaves an undocumented protocol unanswered. For a staged inspection, use <code>jev-graph-builder --harness codex build ./relay-docs --stop-after segment</code>, then remove the flag to continue. Compare a few expected links by hand instead of using node count as a quality score.</p>
+<aside class="blog-note">These implementation details come from the <a href="https://github.com/greghavens/jev-graph-builder/tree/v0.1.1/jev_graph_builder/pipeline">versioned stage code</a> and <a href="https://github.com/greghavens/jev-graph-builder/blob/v0.1.1/jev_graph_builder/build.py">build verification</a>. Training-data export is a separate workflow. Part 3 covers serving and publishing the graph for an agent.</aside>
+  </div>
+  <nav class="blog-pagination" aria-label="Previous and next posts"><a href="../build-a-knowledge-graph/">← Part 1: How to build a knowledge graph</a><a href="../graph-rag-vcf-agent/">Part 3: Put Graph RAG to work in a VCF agent →</a></nav>
+</article>
+
+</main>
+<footer>
+  <a class="brand" href="../../">the internet is hard.</a>
+  <span>Made by Greg Havens. Built in the open.</span>
+  <a href="#content">Back to top ↑</a>
+</footer>
+</body>
+</html>

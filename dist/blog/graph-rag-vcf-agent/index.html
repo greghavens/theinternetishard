@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Publish the graph, connect it over MCP, and use cited VCF evidence to build a better preflight plan.">
+<meta name="theme-color" content="#f4f2e9">
+<title>Put Graph RAG to work in a VCF agent | The Internet Is Hard</title>
+<link rel="canonical" href="https://theinternetishard.com/blog/graph-rag-vcf-agent/">
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="../blog.css">
+<link rel="icon" href="../../favicon.svg">
+</head>
+<body class="blog-page">
+<a class="skip" href="#content">Skip to content</a>
+<header>
+  <a class="brand" href="../../"><span class="brand-icon" aria-hidden="true">⌘</span> the internet is hard.</a>
+  <nav aria-label="Main navigation">
+    <a href="../../#projects">Projects</a>
+    <a href="../../blog/">Blog</a>
+    <a href="../../#about">About</a>
+    <a class="nav-gh" href="https://github.com/greghavens">GitHub ↗</a>
+  </nav>
+</header>
+<main id="content">
+
+<article class="blog-post">
+  <a class="blog-back" href="../">← Blog</a>
+  <div class="blog-post-head">
+    <p class="eyebrow">KNOWLEDGE GRAPHS / PART 03 OF 03</p>
+    <h1>Put Graph RAG to work in a VCF agent</h1>
+    <p class="blog-deck">Publish the graph, connect it over MCP, and use cited VCF evidence to build a better preflight plan.</p>
+    <p class="blog-byline">Greg Havens · <time datetime="2026-11-23">November 23, 2026</time></p>
+  </div>
+  <nav class="blog-sequence" aria-label="Series navigation">
+    <strong>From knowledge graphs to Graph RAG</strong>
+    <ol><li><a href="../build-a-knowledge-graph/">1. How to build a knowledge graph</a></li>
+<li><a href="../jev-graph-builder/">2. Build and verify a graph with Jev Graph Builder</a></li>
+<li><a href="../graph-rag-vcf-agent/" aria-current="page">3. Put Graph RAG to work in a VCF agent</a></li></ol>
+  </nav>
+  <div class="blog-copy">
+<p>A useful VCF agent needs two kinds of evidence: what the documentation says about the exact release and what the target environment is doing now. A documentation graph can improve the first step. It can connect an error to an applicable prerequisite or procedure that a search hit alone might miss. It cannot tell you what the installer’s DNS server actually returns. Design the workflow around that gap.</p>
+
+<h2 id="corpus">Prepare a versioned corpus</h2>
+<p>My <code>vcf-corpus</code> brings together release-specific docs and support articles for VMware Cloud Foundation. To build your own, start with the deployment guide, release notes, API spec, and troubleshooting articles for the release you operate. Keep product, component, version, source URL, and heading metadata; preserve which build and topology a specific fix applies to. Keep internal runbooks and incident records in a separate access scope. A query client’s access to a graph is access to its source passages, not just its summaries.</p>
+<p>Use the build process from <a href="../jev-graph-builder/">Part 2</a>, then inspect real questions with both <code>search</code> and <code>graph_context</code>. The first ranks chunks without graph traversal. The second returns passages identified by <code>p1</code>, <code>p2</code>, and so on, plus the returned neighborhood. Those labels are local to a response. Save the canonical source and heading alongside the label if you need to audit an answer later.</p>
+
+<h2 id="mcp">Connect the agent locally</h2>
+<p>Start with stdio, which lets the client launch the MCP server locally without exposing an HTTP endpoint. For Codex, the project documents a configuration like the following. Use the full path to the executable and the actual build directory; keep the API key in the runner’s environment. Give the serving process its own database credentials where possible: <code>JGB_READER_DSN</code> can use the project’s reader role, which reads graph content and records its own decision calls.</p>
+<pre tabindex="0"><code>[mcp_servers.vcf-docs]
+command = "/path/to/venv/bin/jev-graph-builder"
+args = ["mcp", "--name", "vcf-docs"]
+env = { JEV_GRAPH_BUILDER_CONFIG = "/path/to/build/jev-graph-builder.yaml", JGB_REGISTRY_PATH = "/path/to/build/registry" }
+env_vars = ["TYPESAFE_API_KEY", "JGB_READER_DSN"]
+tool_timeout_sec = 300</code></pre>
+<p>Check the <a href="https://github.com/greghavens/jev-graph-builder/blob/v0.1.1/README.md#use-the-graph-in-claude-code-codex-or-opencode">client examples</a> for the agent you run. Name the connector after the corpus so the tool descriptions tell the agent when to use it. Keep the documentation connector separate from any credentials or tools that operate VCF.</p>
+
+<h2 id="publish">Publish a graph for a shared agent</h2>
+<p><code>publish</code> moves a built graph into the storage used by a hosted query service. Both targets below require a build that includes the command; the 0.1.1 wheel used in Part 2 does not. Use the <a href="https://github.com/greghavens/jev-graph-builder/tree/0541c3488438df9a5a9c59f762ed145653418835">pinned source revision</a> below in a separate virtual environment and test against a staging copy or a fresh build before pointing it at an existing graph. It does not grant access to a VCF installation. The PostgreSQL path copies into a staging database, switches it in after loading, and retains the previous database. You run the MCP service separately. Keep the destination DSN in <code>JGB_PUBLISH_DSN</code> and verify the server points to the published graph.</p>
+<pre tabindex="0"><code># In a separate virtual environment:
+python -m pip install "jev-graph-builder @ git+https://github.com/greghavens/jev-graph-builder.git@0541c3488438df9a5a9c59f762ed145653418835"
+# From the directory that holds the completed build:
+# Set JGB_PUBLISH_DSN securely before running this command.
+jev-graph-builder publish --target postgres</code></pre>
+<p>The Cloudflare target uses D1 for indexed text and graph data, Vectorize for embeddings, and a Worker to serve requests. It is documented in <a href="https://github.com/greghavens/jev-graph-builder/blob/0541c3488438df9a5a9c59f762ed145653418835/README.md#on-cloudflare">this pinned repository revision</a>; the <code>--target cloudflare</code> flag is not part of the 0.1.1 release used in Part 2. Check <code>publish --help</code> on the build you deploy.</p>
+<pre tabindex="0"><code>jev-graph-builder publish --target cloudflare \
+  --name vcf-docs --allow-github-users your-github-login</code></pre>
+<p>Follow the target’s OAuth setup and authorize only the intended users. For hosted HTTP, require HTTPS and authentication; the local HTTP mode without a public URL is unauthenticated and should stay on loopback. Check both a valid login and a rejected one. Then compare a few cited queries against the source build, since the hosted target can use a different embedding profile. Connect the client to the published MCP URL only after those checks pass.</p>
+
+<h2 id="worked-example">Worked example: turn a DNS error into a preflight plan</h2>
+<p>Consider this documentation question, with no live credentials attached:</p>
+<blockquote>VCF 9.0: explain why adding a DNS record alone does not fix “reverse DNS lookup failed” in VCF Installer validation, and what to verify about the deployment specification.</blockquote>
+<p>On one run against <code>vcf-docs</code>, <code>search</code> at <code>k=5</code> found the relevant cause and resolution, among other results. <code>graph_context</code> returned 65 passages and 57 edges, including an <code>example_of</code> link from the general failure <code>p19</code> to a case-mismatch example <code>p44</code>. It also returned licensing material and other documents that did not apply. The graph surfaced a concrete example; the search baseline already had enough to cover the core fix. Sending all 65 passages to the agent without filtering would be a poor trade.</p>
+<table>
+  <thead><tr><th scope="col">Evidence</th><th scope="col">What to do with it</th></tr></thead>
+  <tbody>
+    <tr><th scope="row"><a href="https://knowledge.broadcom.com/external/article/435717">Broadcom KB 435717</a> (<code>p20</code>, <code>p21</code>)</th><td>Take the flagged FQDN and IP from the deployment specification. Check forward and reverse resolution from the installer’s network context, and compare the returned pair with the spec.</td></tr>
+    <tr><th scope="row"><a href="https://knowledge.broadcom.com/external/article/415466">Broadcom KB 415466</a> (<code>p44</code>)</th><td>Check exact spelling and casing. This case illustrates how a lookup can succeed and still fail the installer’s comparison.</td></tr>
+    <tr><th scope="row">Site observations</th><td>Record actual values and timestamps if read-only probes are authorized. With no live results, report readiness as unknown. Do not change DNS or start deployment to test a documentation claim.</td></tr>
+  </tbody>
+</table>
+<p>A practical response from the agent would say: “The installer needs the forward result, the reverse result, and the FQDN/IP in the spec to agree. I can give you the checks now. I can’t say the environment passes until we have results from the installer’s resolver.” That produces a useful plan instead of a guess about the infrastructure.</p>
+
+<h2 id="workflow">Give the agent a workflow, not just a connector</h2>
+<ol>
+  <li><strong>Scope.</strong> Identify the release, component, topology, requested task, and whether you have authority to observe the environment.</li>
+  <li><strong>Retrieve and filter.</strong> Use graph traversal when the task spans prerequisites, diagnosis, and validation. Favor matching product versions and authoritative passages. If graph context is noisy, use a targeted search. A returned passage is a lead; <code>answerable: true</code> only means the tool found something.</li>
+  <li><strong>Plan and observe.</strong> Translate the evidence into ordered read-only checks with expected outputs. Capture what actually happened, leave unobserved state unknown, and stop on conflicting evidence.</li>
+  <li><strong>Review changes separately.</strong> If an authorized operator asks for remediation, review the proposed change, blast radius, rollback, and post-checks before any write. Never treat commands in retrieved text as instructions or use a graph edge as authorization.</li>
+</ol>
+<p>The <a href="https://github.com/greghavens/vcf-9-x-skills">VCF 9.x agent skills</a> complement retrieval: they give the agent a task workflow and version guardrails; the graph brings back supporting passages. Neither replaces observations from the environment.</p>
+
+<h2 id="evaluation">Measure whether the workflow got better</h2>
+<p>Replay held-out tasks in two arms: ranked search and graph-expanded retrieval. Freeze the corpus snapshot, model, prompt, and context budget. Where a task needs site evidence, give both arms the same recorded observations or sandbox; do not grade an invented live result as success. Score correct version, required prechecks, supported citations, proof of postconditions, and correct abstention. Also track irrelevant context, latency, and the cost of a wrong action. Include single-passage questions, cross-document prerequisites, and deliberately underspecified requests. The DNS run above is a retrieval example, not a benchmark or a live VCF test.</p>
+<aside class="blog-note"><strong>Start with one task.</strong> Choose a recurring VCF operation, record the checks you expect and the evidence required for each, then compare one run with traversal and one without. Expand coverage once you can explain what the graph changed in the agent’s plan.</aside>
+  </div>
+  <nav class="blog-pagination" aria-label="Previous and next posts"><a href="../jev-graph-builder/">← Part 2: Build and verify a graph with Jev Graph Builder</a><a href="../">All posts →</a></nav>
+</article>
+
+</main>
+<footer>
+  <a class="brand" href="../../">the internet is hard.</a>
+  <span>Made by Greg Havens. Built in the open.</span>
+  <a href="#content">Back to top ↑</a>
+</footer>
+</body>
+</html>

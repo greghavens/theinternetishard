@@ -5,7 +5,7 @@ window.PROJECTS = [
     "kind": "github",
     "tag": "SIMULATION & MOTION CONTROL",
     "description": "Linux-native telemetry and motion control for racing and flight simulators.",
-    "detail": "Turn game telemetry into motion-platform cues, bass-shaker effects, wind, LEDs, belt tensioning, and VR motion compensation. Supports racing and flight simulators, including Windows games through Steam Proton. Free, early-stage software; build from source.",
+    "detail": "Turn game telemetry into motion-platform cues, bass-shaker effects, wind, LEDs, belt tensioning, and VR motion compensation. Supports racing and flight simulators, including Windows games through Steam Proton. Early-stage software with a prebuilt Linux x86-64 AppImage and a source-build option. Check the release notes for hardware testing limits.",
     "url": "https://github.com/greghavens/openrigcue"
   },
   {
@@ -40,8 +40,8 @@ window.PROJECTS = [
     "name": "Moonshiner",
     "kind": "github",
     "tag": "TRAINING DATA",
-    "description": "From seed tasks to judged model traces and training-ready datasets.",
-    "detail": "Author seeds, generate trajectories, judge the results, retry rejected traces, and publish accepted data to Hugging Face. Independent queues handle authoring, tracing, review, formatting, and publication.",
+    "description": "Run Moonshiner’s included tasks through one LLM to produce training traces for another.",
+    "detail": "Moonshiner ships a task corpus for coding, tool use, and instruction following. Choose a teacher LLM, run the included tasks, and collect structured traces for training a student model. Review, retries, and optional Hugging Face publishing support that workflow.",
     "url": "https://github.com/greghavens/moonshiner"
   },
   {

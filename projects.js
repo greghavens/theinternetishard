@@ -77,7 +77,7 @@ window.PROJECTS = [
     "kind": "github",
     "tag": "AGENT RELIABILITY",
     "description": "Check an assistant’s final claims against the work it actually performed.",
-    "detail": "Flags unverified claims, weasel words, and omissions of failures. Uses TypeSafe’s Jev and integrates with Claude Code, Codex, pi, and OpenCode to request a grounded correction.",
+    "detail": "Flags unverified claims, weasel words, and omissions of failures. Uses TypeSafe’s Jev to ask for a grounded correction in Claude Code, Codex, pi, or OpenCode. A reply may go through unchecked if the check errors.",
     "url": "https://github.com/greghavens/jev-no-bullshit"
   },
   {
@@ -86,7 +86,7 @@ window.PROJECTS = [
     "kind": "github",
     "tag": "AGENT GUARDRAILS",
     "description": "Check whether a proposed tool call stays within the agreed scope.",
-    "detail": "A PreToolUse hook asks Jev whether the call matches what the user requested or agreed to. Out-of-scope calls are denied with a reason. The repository contains integrations, examples, and tests.",
+    "detail": "A PreToolUse hook asks Jev whether the call matches what the user requested or agreed to. The hook explains a denial when it gets one, but errors let the call proceed. It supplements the host’s permissions rather than replacing them.",
     "url": "https://github.com/greghavens/jev-scope-control"
   },
   {
@@ -95,7 +95,7 @@ window.PROJECTS = [
     "kind": "github",
     "tag": "SKILLS & PLUGINS",
     "description": "The public skill and plugin registry for Triggerfish.",
-    "detail": "A static catalog served through GitHub Pages. Contributions are submitted as pull requests, validated, and published as JSON indexes for discovery by Triggerfish.",
+    "detail": "A static registry for versioned skill and plugin contributions. Its public JSON catalogs had no entries when checked on November 27, 2026.",
     "url": "https://github.com/greghavens/reef-registry"
   },
   {
@@ -238,8 +238,8 @@ window.PROJECTS = [
     "name": "Fable 5 Trace Explorer",
     "kind": "space",
     "tag": "INTERACTIVE EXPLORER",
-    "description": "Browse, search, and export agentic coding trajectories.",
-    "detail": "A Gradio interface with dataset summaries, trajectory minimaps, syntax-highlighted tool calls, edit diffs, and filtered JSONL export. Open the Space to check its current runtime availability.",
+    "description": "Gradio trace explorer; Hugging Face reported a runtime error at the last check.",
+    "detail": "Designed to browse and export Fable 5 coding traces. The public Space reported a runtime error on November 27, 2026; check the Space for current status.",
     "url": "https://huggingface.co/spaces/greghavens/fable-5-trace-explorer"
   }
 ];

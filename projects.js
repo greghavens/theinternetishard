@@ -5,7 +5,7 @@ window.PROJECTS = [
     "kind": "github",
     "tag": "SIMULATION & MOTION CONTROL",
     "description": "Linux-native telemetry and motion control for racing and flight simulators.",
-    "detail": "Turn game telemetry into motion-platform cues, bass-shaker effects, wind, LEDs, belt tensioning, and VR motion compensation. Supports racing and flight simulators, including Windows games through Steam Proton. Early-stage software with a prebuilt Linux x86-64 AppImage and a source-build option. Check the release notes for hardware testing limits.",
+    "detail": "Turn game telemetry into motion-platform cues, bass-shaker effects, wind, LEDs, belt tensioning, and VR motion compensation. Supports racing and flight simulators, including Windows games through Steam Proton. Get started with the Linux x86-64 AppImage or build from source.",
     "url": "https://github.com/greghavens/openrigcue"
   },
   {

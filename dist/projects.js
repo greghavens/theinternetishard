@@ -49,9 +49,9 @@ window.PROJECTS = [
     "name": "VCF Agent Skills",
     "kind": "github",
     "tag": "VMWARE CLOUD FOUNDATION",
-    "description": "28 version-aware agent skills for VCF 9.0, 9.1, and 9.1.1.",
-    "detail": "Ready-to-install skills for Windsurf, Claude, Codex, Triggerfish, and OpenClaw. Covers VMware infrastructure and documented Dell integrations, with version-scoped references and source citations.",
-    "url": "https://github.com/greghavens/vcf-9-x-skills"
+    "description": "28 version-aware VCF agent skills. Source and downloads are not publicly available.",
+    "detail": "Project overview only: the repository and downloadable skill bundles are not publicly available.",
+    "url": "https://theinternetishard.com/projects/vcf-9-x-skills/"
   },
   {
     "id": "fabletron",

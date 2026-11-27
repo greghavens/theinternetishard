@@ -14,7 +14,7 @@ window.PROJECTS = [
     "kind": "github",
     "tag": "MODEL DEVELOPMENT",
     "description": "A dedicated IDE for the complete model lifecycle, built on Code – OSS.",
-    "detail": "Organize research, datasets, recipes, training, evaluation, and exports in one model project. Includes a native MCP server and shared operations for humans and agents. In development; the repository documents acceptance and packaging status.",
+    "detail": "Organize research, datasets, recipes, training, evaluation, and exports in one model project. Includes a native MCP server and shared operations for humans and agents.",
     "url": "https://github.com/greghavens/protomire"
   },
   {
@@ -49,9 +49,9 @@ window.PROJECTS = [
     "name": "VCF Agent Skills",
     "kind": "github",
     "tag": "VMWARE CLOUD FOUNDATION",
-    "description": "28 version-aware VCF agent skills. Source and downloads are not publicly available.",
-    "detail": "Project overview only: the repository and downloadable skill bundles are not publicly available.",
-    "url": "https://theinternetishard.com/projects/vcf-9-x-skills/"
+    "description": "28 version-aware agent skills for VMware Cloud Foundation 9.0, 9.1, and 9.1.1.",
+    "detail": "Give Windsurf, Claude, Codex, Triggerfish, or OpenClaw version-specific VCF references, from NSX and vSAN to VKS and VCF Automation.",
+    "url": "https://github.com/greghavens/vcf-9-x-skills"
   },
   {
     "id": "fabletron",
@@ -77,7 +77,7 @@ window.PROJECTS = [
     "kind": "github",
     "tag": "AGENT RELIABILITY",
     "description": "Check an assistant’s final claims against the work it actually performed.",
-    "detail": "Flags unverified claims, weasel words, and omissions of failures. Uses TypeSafe’s Jev to ask for a grounded correction in Claude Code, Codex, pi, or OpenCode. A reply may go through unchecked if the check errors.",
+    "detail": "Flags unverified claims, weasel words, and omissions of failures. Uses TypeSafe’s Jev to ask for a grounded correction in Claude Code, Codex, pi, or OpenCode.",
     "url": "https://github.com/greghavens/jev-no-bullshit"
   },
   {
@@ -95,7 +95,7 @@ window.PROJECTS = [
     "kind": "github",
     "tag": "SKILLS & PLUGINS",
     "description": "The public skill and plugin registry for Triggerfish.",
-    "detail": "A static registry for versioned skill and plugin contributions. Its public JSON catalogs had no entries when checked on November 27, 2026.",
+    "detail": "Browse the skill and plugin catalogs or use the contribution guide to package a Triggerfish extension.",
     "url": "https://github.com/greghavens/reef-registry"
   },
   {
@@ -230,7 +230,7 @@ window.PROJECTS = [
     "kind": "space",
     "tag": "INTERACTIVE EXPLORER",
     "description": "Browse, search, and export agentic coding trajectories.",
-    "detail": "A Gradio interface with dataset summaries, trajectory minimaps, syntax-highlighted tool calls, edit diffs, and filtered JSONL export. Open the Space to check its current runtime availability.",
+    "detail": "A Gradio interface with dataset summaries, trajectory minimaps, syntax-highlighted tool calls, edit diffs, and filtered JSONL export.",
     "url": "https://huggingface.co/spaces/greghavens/kimi-k3-trace-explorer"
   },
   {
@@ -238,8 +238,8 @@ window.PROJECTS = [
     "name": "Fable 5 Trace Explorer",
     "kind": "space",
     "tag": "INTERACTIVE EXPLORER",
-    "description": "Gradio trace explorer; Hugging Face reported a runtime error at the last check.",
-    "detail": "Designed to browse and export Fable 5 coding traces. The public Space reported a runtime error on November 27, 2026; check the Space for current status.",
+    "description": "Explore Fable 5 coding traces with trajectory maps, tool calls, edit diffs, and JSONL export.",
+    "detail": "A Gradio interface for inspecting agent trajectories and exporting filtered subsets.",
     "url": "https://huggingface.co/spaces/greghavens/fable-5-trace-explorer"
   }
 ];
